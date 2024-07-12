@@ -16,6 +16,7 @@ import { EnvelopeIcon, PencilIcon, RectangleGroupIcon, ServerIcon } from '@heroi
 import { getDomains } from '@utils/domains/domains';
 import DomainSideBar from '@components/SideBars/DomainSideBar.astro';
 import type { CollectionTypes } from '@types';
+import SchemaViewer from '@components/MDX/SchemaViewer/SchemaViewer.astro';
 
 export async function getStaticPaths() {
   const events = await getEvents();
@@ -70,7 +71,11 @@ const getBadge = () => {
   }
 };
 
-const badges = [getBadge(), ...contentBadges];
+const badges = [
+  getBadge(),
+  ...contentBadges
+];
+
 ---
 
 <DocsLayout title={pageTitle} description={props.data.summary}>
@@ -99,13 +104,6 @@ const badges = [getBadge(), ...contentBadges];
             )
           }
         </div>
-
-        <!-- <div class="hidden md:block opacity-50 md:pr-10">
-          {props.collection === 'services' && <ServerIcon className="w-20 h-20 text-pink-500" />}
-          {props.collection === 'events' && <EnvelopeIcon className="w-20 h-20 text-orange-500" />}
-          {props.collection === 'commands' && <EnvelopeIcon className="w-20 h-20 text-blue-500" />}
-          {props.collection === 'domains' && <RectangleGroupIcon className="w-20 h-20 text-yellow-500" />}
-        </div> -->
       </div>
 
       <div>
@@ -145,16 +143,12 @@ const badges = [getBadge(), ...contentBadges];
       </div>
 
       <div class="prose prose-md py-4 w-full">
-        <Content components={components(props)} />
+          <Content components={components(props)} />
       </div>
       <div>
-        <NodeGraph
-          id={props.data.id}
-          collection={props.collection}
-          version={props.data.version}
-          mode="simple"
-          href={{ label: 'Open in Visualiser', url: `/visualiser/${props.collection}/${props.data.id}/${props.data.version}` }}
-        />
+        <!-- @ts-ignore -->
+        <SchemaViewer id={props.data.id} catalog={props.catalog}  />
+        <NodeGraph id={props.data.id} collection={props.collection} version={props.data.version} mode="simple" href={{ label: 'Open in Visualiser', url: `/visualiser/${props.collection}/${props.data.id}/${props.data.version}`}} />
       </div>
       <footer class="py-4 space-y-8 divide-y divide-gray-200/60">
         <a href="#" class="flex space-x-2 items-center text-gray-500 hover:text-purple-500 hover:underline"
@@ -202,7 +196,16 @@ const badges = [getBadge(), ...contentBadges];
   }
 </style>
 
+
+<script define:vars={{ props }}>
+  // Fix to pass information to componets that are client side only
+  // and require catalog information
+  window.eventcatalog = {};
+  window.eventcatalog[`${props.collection}-${props.data.id}`] = props.catalog;
+</script>
+
 <script>
+
   /**
    * @params {HTMLCollectionOf<HTMLElement>} graphs
    */
